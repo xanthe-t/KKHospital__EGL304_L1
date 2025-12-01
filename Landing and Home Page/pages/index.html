@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - KKH</title>
+    <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div class="container">
+            <h2>KK Hospital</h2>
+            <div class="account-info">
+                <span id="username-display">Logged in as: <span id="user"></span></span>
+                <a href="/logout" class="logout-btn" id="logout-btn">Logout</a>
+
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1>Work Schedule</h1>
+
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Ward</th>
+                    <th>Nurse In-Charge</th>
+                    <th>Patients Assigned</th>
+                    <th>Workload Quota</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Ward 3A</td>
+                    <td>Nur Aisyah</td>
+                    <td>
+                        • Patient 001 Sarah Lim<br>
+                        • Patient 014 Megan Tan
+                    </td>
+                    <td>2 / 5</td>
+                    <td>
+                        <button class="btn-view">View</button>
+                        <button class="btn-update">Update</button>
+                        <button class="btn-remove">Remove</button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Ward 4B</td>
+                    <td>John Lee</td>
+                    <td>
+                        • Patient 007 Ahmad Rahim<br>
+                        • Patient 021 Chloe Ng<br>
+                        • Patient 030 Lucas Wong
+                    </td>
+                    <td>3 / 5</td>
+                    <td>
+                        <button class="btn-view">View</button>
+                        <button class="btn-update">Update</button>
+                        <button class="btn-remove">Remove</button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Ward 2C</td>
+                    <td>Lim Jia Wen</td>
+                    <td>
+                        • Patient 012 Tan Wei<br>
+                        • Patient 088 Siti Nur<br>
+                    </td>
+                    <td>2 / 5</td>
+                    <td>
+                        <button class="action-btn">View</button>
+                        <button class="action-btn">Update</button>
+                        <button class="action-btn">Remove</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-modal" class="modal">
+            <div class="modal-content">
+                <p>Are you sure you want to logout?</p>
+                <div class="modal-buttons">
+                    <button id="confirm-logout" class="btn-yes">Yes</button>
+                    <button id="cancel-logout" class="btn-no">No</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <!-- <script>
+        // display username
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+
+        document.getElementById("user").innerText = getCookie("username") || "Unknown";
+
+        // inactivity check
+        const INACTIVE_LIMIT = 5 * 60 * 1000;
+        let lastActivity = Date.now();
+
+        function resetTimer() {
+            lastActivity = Date.now();
+        }
+
+        // activities
+        window.addEventListener("mousemove", resetTimer);
+        window.addEventListener("keydown", resetTimer);
+        window.addEventListener("click", resetTimer);
+        window.addEventListener("scroll", resetTimer);
+
+        setInterval(() => {
+            if (Date.now() - lastActivity > INACTIVE_LIMIT) {
+                window.location.href = "/logout";
+            }
+        }, 10000); // check every 10 sec
+    </script> -->
+
+    <script>
+        // helper to read cookies
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+
+        const currentUser = getCookie("username");
+        document.getElementById("user").innerText = currentUser || "Unknown";
+
+        // Create popup function
+        function showPopup(message, type = "info") {
+            const popup = document.createElement("div");
+            popup.className = `popup ${type}`;
+            popup.innerText = message;
+
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.remove();
+            }, 3000);
+        }
+
+        // Check backend status every 3 seconds
+        async function checkStatus() {
+            const res = await fetch("/status");
+            const data = await res.json();
+
+            const activeUser = data.activeUser;
+            const isOwner = activeUser === currentUser || activeUser === null;
+
+            // Update top bar display
+            document.getElementById("username-display").innerHTML =
+                `Logged in as: <strong>${currentUser}</strong> | System Active User: <strong>${activeUser || "None"}</strong>`;
+
+            // Get all action buttons
+            const buttons = document.querySelectorAll("button");
+
+            if (!isOwner) {
+                // disable all actions
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add("disabled");
+                });
+
+                showPopup(`System is currently used by ${activeUser}. Actions disabled.`, "error");
+            } else {
+                // enable all actions
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove("disabled");
+                });
+            }
+        }
+
+        setInterval(checkStatus, 3000);
+        checkStatus();
+
+        // inactivity logic remains the same
+        // Inactivity logic
+        const INACTIVE_LIMIT = 1 * 60 * 1000; // 1 minute
+        let lastActivity = Date.now();
+
+        function resetTimer() {
+            lastActivity = Date.now();
+        }
+
+        // Detect user activity
+        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(event => {
+            window.addEventListener(event, resetTimer);
+        });
+
+        // Check every 5 seconds if user is idle
+        setInterval(() => {
+            if (Date.now() - lastActivity > INACTIVE_LIMIT) {
+
+                // Show popup for idle
+                showPopup("You have been logged off as you were idle for a minute.", "error");
+
+                // Redirect to logout after 2 seconds, passing type=idle
+                setTimeout(() => {
+                    window.location.href = "/logout?type=idle";
+                }, 2000);
+            }
+        }, 5000);
+
+
+        // Logout confirmation modal
+        const logoutBtn = document.getElementById("logout-btn");
+        const modal = document.getElementById("logout-modal");
+        const confirmBtn = document.getElementById("confirm-logout");
+        const cancelBtn = document.getElementById("cancel-logout");
+
+        // Show modal when logout is clicked
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault(); // prevent immediate navigation
+            modal.style.display = "flex";
+        });
+
+        // Confirm logout
+        // Confirm logout
+        confirmBtn.addEventListener("click", () => {
+            modal.style.display = "none";
+
+            // Show success message
+            showPopup("You have successfully logged out.", "success");
+
+            // Redirect to /logout after 2 seconds
+            setTimeout(() => {
+                window.location.href = "/logout?loggedOut=manual";
+            }, 2000);
+        });
+
+        // Cancel logout
+        cancelBtn.addEventListener("click", () => {
+            modal.style.display = "none"; // close modal
+        });
+
+        // Close modal if click outside content
+        window.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+
+        function showPopup(message, type = "info") {
+            const popup = document.createElement("div");
+            popup.className = `popup ${type}`;
+            popup.innerText = message;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.remove();
+            }, 3000);
+        }
+
+
+
+    </script>
+
+
+
+</body>
+
+</html>

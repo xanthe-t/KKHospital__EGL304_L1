@@ -1,0 +1,153 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Page background */
+body {
+    background: linear-gradient(135deg, #418fde, #ffffff);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Login box */
+.login-container {
+    background-color: white;
+    padding: 40px 35px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.login-container h1 {
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Input fields */
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #2575fc;
+    outline: none;
+    box-shadow: 0 0 4px rgba(37, 117, 252, 0.3);
+}
+
+/* Button */
+button {
+    width: 100%;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #3f556b;
+
+}
+
+.error-message {
+    margin-top: 15px;
+    color: #d9534f; /* red */
+    font-size: 14px;
+}
+
+/* Popup messages on login page */
+.popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: white;
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.popup.info {
+    background-color: #007bff; /* blue */
+}
+
+.popup.success {
+    background-color: #28a745; /* green */
+}
+
+.popup.error {
+    background-color: #e74c3c; /* red, brighter than black */
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo {
+    display: block;
+    margin: 0 auto 20px auto; /* center the logo and add space below */
+    max-width: 200px; /* adjust size as needed */
+    height: auto;
+}
+
+.popup.success {
+    background-color: #28a745; /* green */
+}
+
+.password-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+/* Make password input wide */
+.password-wrapper input {
+    width: 100%;
+    flex-grow: 1;
+}
+
+/* Make the SHOW button narrow */
+.toggle-password {
+    width: 60px;            /* <<< MAKE BUTTON NARROW HERE */
+    padding: 8px 0;         /* thinner button */
+    margin-left: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #c8c8c8;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+
