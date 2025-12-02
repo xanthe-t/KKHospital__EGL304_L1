@@ -21,6 +21,20 @@
       "role": "Administrator"
     }
   ],
+  "patients": [
+    {
+      "id": 1764677354102,
+      "name": "Patient1",
+      "contactNumber": "87654321",
+      "medicalHistory": "NIL"
+    },
+    {
+      "id": 1764677359385,
+      "name": "Patient2",
+      "contactNumber": "98765432",
+      "medicalHistory": "NIL"
+    }
+  ],
   "activeUser": "Admin",
-  "lastActivity": 1764657262070
+  "lastActivity": 1764677347249
 }

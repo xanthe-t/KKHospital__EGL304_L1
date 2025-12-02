@@ -25,7 +25,8 @@
             <button class="tab-btn active" data-tab="schedule">Work Schedule</button>
             <button class="tab-btn" data-tab="create-user">Create Users</button>
             <button class="tab-btn" data-tab="view-users">View Users</button>
-            <button class="tab-btn" data-tab="create-patient">Create Patient</button>
+            <button class="tab-btn" data-tab="add-patient">Patients</button>
+
         </div>
 
         <!-- Schedule Tab -->
@@ -100,6 +101,8 @@
         <!-- View Users Tab -->
         <div id="tab-view-users" class="tab-section" style="display: none;">
             <h1>All Users</h1>
+            <!-- search bar -->
+            <input type="text" id="user-search" placeholder="Search users..." class="search-input">
             <table class="users-table">
                 <thead>
                     <tr>
@@ -124,6 +127,10 @@
                         <input type="text" id="update-username" readonly>
                     </div>
                     <div class="input-group">
+                        <label for="update-password">Password (leave blank to keep current)</label>
+                        <input type="password" id="update-password" placeholder="Enter new password">
+                    </div>
+                    <div class="input-group">
                         <label for="update-role">Role</label>
                         <select id="update-role">
                             <option value="Administrator">Administrator</option>
@@ -138,51 +145,30 @@
             </div>
         </div>
 
-        <!-- Create Patient Section -->
-        <div id="tab-create-patient" class="tab-section" style="display: none;">
-            <h1>Create Patient Record</h1>
-
+        <div id="tab-add-patient" class="tab-section" style="display: none;">
+            <h1>Patient Records</h1>
             <form class="create-patient-form">
-                <div class="input-group">
-                    <label for="new-username">Name</label>
-                    <input type="text" id="patient-name" placeholder="Enter name" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="new-contact">Contact Number</label>
-                    <input type="text" id="patient-contact" placeholder="Enter contact number" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="new-address">Address</label>
-                    <input type="text" id="patient-address" placeholder="Enter address" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="new-medical-history">Medical History</label>
-                    <input type="text" id="patient-medical-history" placeholder="Enter medical history" required>
-                </div>
-
-
-                <button type="submit" class="action-btn">Create Patient</button>
+                <input type="text" id="patient-name" placeholder="Name" required>
+                <input type="text" id="patient-contact" placeholder="Contact Number" required>
+                <input type="text" id="patient-history" placeholder="Medical History" required>
+                <button id="addPatientBtn" class="action-btn">Add Patient</button>
             </form>
-            <h1>All Patients</h1>
-                <table class="patient-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Contact</th>
-                            <th>Address</th>
-                            <th>Medical History</th>
-                        </tr>
-                    </thead>
-                    <tbody id="patient-list">
-                        <!-- Filled dynamically -->
-                    </tbody>
-                </table>
+
+            <table class="patients-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Contact Number</th>
+                        <th>Medical History</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patients-list">
+                    <!-- patients list -->
+                </tbody>
+            </table>
         </div>
 
-        
 
         <!-- Logout Confirmation Modal -->
         <div id="logout-modal" class="modal">
@@ -245,6 +231,11 @@
                 return;
             }
 
+            if (password.length < 8) {
+                showPopup("Password must be at least 8 characters long.", "error");
+                return;
+            }
+
             try {
                 const res = await fetch("/create-user", {
                     method: "POST",
@@ -290,6 +281,24 @@
             }
         }
 
+        // search bar
+        const userSearch = document.getElementById("user-search");
+        userSearch.addEventListener("input", () => {
+            const filter = userSearch.value.toLowerCase();
+            const rows = document.querySelectorAll("#users-list tr");
+
+            rows.forEach(row => {
+                const username = row.cells[0].textContent.toLowerCase();
+                const role = row.cells[1].textContent.toLowerCase();
+                if (username.includes(filter) || role.includes(filter)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+
+
         // Delete User
         async function deleteUser(e) {
             const username = e.target.dataset.username;
@@ -312,18 +321,21 @@
             }
         }
 
-        // CREATE PATIENT FORM
+        // create Patient
         const createPatientForm = document.querySelector(".create-patient-form");
-
-        createPatientForm.addEventListener("submit", async (e) => {
+        createPatientForm.addEventListener("submit", async e => {
             e.preventDefault();
-
             const name = document.getElementById("patient-name").value.trim();
-            const contact = document.getElementById("patient-contact").value.trim();
-            const address = document.getElementById("patient-address").value.trim();
-            const medicalHistory = document.getElementById("patient-medical-history").value.trim();
+            const medicalHistory = document.getElementById("patient-history").value.trim();
+            const contactNumber = document.getElementById("patient-contact").value.trim();
+            // contact validation
+            const contactRegex = /^(?:\+65)?[0-9]{8}$/;
+            if (!contactRegex.test(contactNumber)) {
+                showPopup("Contact number must be at least 8 digits and contain only numbers", "error");
+                return;
+            }
 
-            if (!name || !contact || !address || !medicalHistory) {
+            if (!name || !contactNumber || !medicalHistory) {
                 showPopup("Please fill in all fields.", "error");
                 return;
             }
@@ -332,14 +344,13 @@
                 const res = await fetch("/create-patient", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, contact, address, medicalHistory })
+                    body: JSON.stringify({ name, contactNumber, medicalHistory })
                 });
-
                 const data = await res.json();
-
                 if (data.success) {
-                    showPopup("User created successfully!", "success");
+                    showPopup("Patient added successfully!", "success");
                     createPatientForm.reset();
+                    loadPatients(); // refresh table
                 } else {
                     showPopup("Error: " + data.message, "error");
                 }
@@ -347,6 +358,60 @@
                 showPopup("Server error: " + err.message, "error");
             }
         });
+        // load patients
+        async function loadPatients() {
+            try {
+                const res = await fetch("/patients");
+                const data = await res.json();
+
+                if (!data.success) return;
+
+                const tbody = document.getElementById("patients-list");
+                tbody.innerHTML = "";
+                data.patients.forEach(p => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${p.name}</td>
+                        <td>${p.contactNumber}</td>
+                        <td>${p.medicalHistory}</td>
+                        <td>
+                            <button class="btn-remove-patient" data-id="${p.id}">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+
+                // delete patient
+                document.querySelectorAll(".btn-remove-patient").forEach(btn => {
+                    btn.addEventListener("click", async e => {
+                        const id = Number(e.target.dataset.id);
+                        if (!confirm(`Delete patient?`)) return;
+
+                        try {
+                            const res = await fetch(`/patients/${id}`, { method: "DELETE" });
+                            const result = await res.json();
+
+                            if (result.success) {
+                                showPopup("Patient deleted successfully!", "success");
+                                loadPatients();
+                            } else {
+                                showPopup("Error: " + result.message, "error");
+                            }
+                        } catch (err) {
+                            showPopup("Server error: " + err.message, "error");
+                        }
+                    });
+                });
+
+
+            } catch (err) {
+                showPopup("Error loading patients: " + err.message, "error");
+            }
+        }
+
+        loadPatients();
+
 
         // Update User Modal
         const updateModal = document.getElementById("update-user-modal");
@@ -416,4 +481,5 @@
 
     </script>
 </body>
+
 </html>
