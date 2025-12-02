@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, "images")));
 const file = join(__dirname, '../shared-db/db.json');
 const adapter = new JSONFile(file);
 // const defaultData = { activeUser: null, users: [{}], lastActivity: null };
-const defaultData = { activeUser: null, users: [], lastActivity: null };
+const defaultData = { activeUser: null, users: [], patients: [], lastActivity: null };
 
 const db = new Low(adapter, defaultData);
 await db.read();
@@ -262,6 +262,32 @@ app.post("/delete-user", async (req, res) => {
 });
 
 
+// Create patient record
+app.post("/create-patient", async (req, res) => {
+    try {
+        const currentUser = req.cookies.username;
+        await db.read();
+
+        const userObj = db.data.users.find(u => u.username === currentUser);
+        if (!userObj || userObj.role !== "Administrator") {
+            return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+
+        const { name, contact, address, medicalHistory } = req.body;
+
+        if (!name || !contact || !address || !medicalHistory) {
+            return res.status(400).json({ success: false, message: "Missing fields" });
+        }
+
+        db.data.patients.push({ name, contact, address, medicalHistory });
+        await db.write();
+
+        return res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
 
 
 
