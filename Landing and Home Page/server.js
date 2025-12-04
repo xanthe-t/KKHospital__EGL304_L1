@@ -227,7 +227,7 @@ app.get("/users", async (req, res) => {
 // Update user role
 app.post("/update-user", async (req, res) => {
     await db.read();
-    const { username, role } = req.body;
+    const { username, role, password } = req.body;
 
     if (!username || !role) {
         return res.json({ success: false, message: "Missing fields" });
@@ -242,6 +242,11 @@ app.post("/update-user", async (req, res) => {
     }
 
     user.role = role;
+
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+    }
 
     await db.write();
     return res.json({ success: true, message: "User updated" });
@@ -263,6 +268,13 @@ app.post("/delete-user", async (req, res) => {
 
 // add patient
 app.post("/create-patient", async (req, res) => {
+    const currentUser = req.cookies.username;
+    await db.read();
+    const userObj = db.data.users.find(u => u.username === currentUser);
+    if (!userObj || userObj.role !== "Administrator") {
+        return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
     const { name, contactNumber, medicalHistory } = req.body;
     if (!name || !contactNumber || !medicalHistory) {
         return res.status(400).json({ success: false, message: "Missing fields" });
@@ -277,7 +289,13 @@ app.post("/create-patient", async (req, res) => {
 
 // get patients
 app.get("/patients", async (req, res) => {
+    const currentUser = req.cookies.username;
     await db.read();
+    const userObj = db.data.users.find(u => u.username === currentUser);
+    if (!userObj || userObj.role !== "Administrator") {
+        return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
     res.json({ success: true, patients: db.data.patients });
 });
 
